@@ -64,7 +64,7 @@ function App() {
 							});
 						}}
 						>
-						Name from API is: {name}
+						Name from API is: {name1}
 					</button>
 				<p>
 					Edit <code>worker/index.ts</code> to change the name
