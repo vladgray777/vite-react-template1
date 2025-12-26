@@ -54,6 +54,18 @@ function App() {
 				>
 					Name from API is: {name}
 				</button>
+				<button
+					onClick={() => {
+						fetch("/api/questions")
+						.then((res) => res.json())
+						.then((data) => {
+							// show first question
+							setName(data.Q1.question);
+							});
+						}}
+						>
+						Name from API is: {name}
+					</button>
 				<p>
 					Edit <code>worker/index.ts</code> to change the name
 				</p>
