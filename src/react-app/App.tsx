@@ -60,6 +60,7 @@ function App() {
 						.then((res) => res.json())
 						.then((data) => {
 							// show first question
+							console.log(data);
 							setName1(data.Q1.question);
 							});
 						}}
