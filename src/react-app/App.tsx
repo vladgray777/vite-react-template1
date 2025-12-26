@@ -10,7 +10,7 @@ import "./App.css";
 function App() {
 	const [count, setCount] = useState(0);
 	const [name, setName] = useState("unknown");
-
+    const [name1, setName1] = useState("unknown1");
 	return (
 		<>
 			<div>
@@ -60,7 +60,7 @@ function App() {
 						.then((res) => res.json())
 						.then((data) => {
 							// show first question
-							setName(data.Q1.question);
+							setName1(data.Q1.question);
 							});
 						}}
 						>
