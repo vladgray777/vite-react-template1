@@ -46,9 +46,9 @@ function App() {
 			<div className="card">
 				<button
 					onClick={() => {
-						fetch("/api/test")
-							.then((res) => res.json() as Promise<{ name: string }>)
-							.then((data) => setName(data.name));
+						fetch("/api/questions")
+							.then((res) => res.json() as Promise<>)
+							.then((data) => setName(data));
 					}}
 					aria-label="get name"
 				>
