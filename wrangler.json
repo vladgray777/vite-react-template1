@@ -11,5 +11,13 @@
 	"assets": {
 		"directory": "./dist/client",
 		"not_found_handling": "single-page-application"
-	}
+	},
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "55eb964871ad45d6bab01983e8943add",
+
+      "preview_id": "<ID_OF_PREVIEW_KV_NAMESPACE_FOR_LOCAL_DEVELOPMENT>"
+    }
+  ]
 }
