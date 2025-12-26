@@ -1,11 +1,3 @@
-// import { Hono } from "hono";
-// const app = new Hono<{ Bindings: Env }>();
-
-// app.get("/api/", (c) => c.json({ name: "Cloudflare" }));
-
-// export default app;
-
-
 import { Hono } from "hono";
 
 export interface Env {
@@ -14,9 +6,7 @@ export interface Env {
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.get("/api/", (c) => {
-  return c.json({ name: "Cloudflare" });
-});
+app.get("/api/", (c) => c.json({ name: "Cloudflare" }));
 
 app.get("/api/questions", async (c) => {
   const questions = await c.env.KV.get("n400", { type: "json" });
@@ -28,4 +18,7 @@ app.get("/api/questions", async (c) => {
   return c.json(questions);
 });
 
-export default app;
+// 🔥 THIS IS CRITICAL
+export default {
+  fetch: app.fetch,
+};
