@@ -71,7 +71,7 @@ const NaturalizationTestPractice: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await fetch('http://localhost:3001/api/questions');
+      const response = await fetch('/api/questions');
       
       if (!response.ok) {
         throw new Error('Failed to fetch questions');
