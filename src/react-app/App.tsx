@@ -272,16 +272,14 @@ const NaturalizationTestPractice: React.FC = () => {
     fetch("/api/questions")
       .then((res) => res.json())
       .then((data) => {
-        const q2 = data.find(q => q.id === "Q2");
-        if (q2) {
-          setName(q2.question);
-        }
-      });
+        // data is an array
+        setName(data[0].question);
+      })
+      .catch(err => console.error(err));
   }}
 >
   Name from API is: {name}
 </button>
-            </div>
 
             <div className="mb-8">
               <label htmlFor="questionsPerPage" className="block text-gray-700 font-medium mb-3">
