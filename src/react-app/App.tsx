@@ -267,16 +267,20 @@ const NaturalizationTestPractice: React.FC = () => {
               <p className="text-gray-500 text-sm mt-2">
                 Select how many questions you want in your quiz
               </p>
-              				<button
-					onClick={() => {
-						fetch("/api/")
-							.then((res) => res.json() as Promise<{ name: string }>)
-							.then((data) => setName(data.name));
-					}}
-					aria-label="get name"
-				>
-					Name from API is: {name}
-				</button>
+<button
+  onClick={() => {
+    fetch("/api/questions")
+      .then((res) => res.json())
+      .then((data) => {
+        const q2 = data.find(q => q.id === "Q2");
+        if (q2) {
+          setName(q2.question);
+        }
+      });
+  }}
+>
+  Name from API is: {name}
+</button>
             </div>
 
             <div className="mb-8">
