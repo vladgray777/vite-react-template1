@@ -281,6 +281,8 @@ const NaturalizationTestPractice: React.FC = () => {
   Name from API is: {name}
 </button>
 
+            </div>
+
             <div className="mb-8">
               <label htmlFor="questionsPerPage" className="block text-gray-700 font-medium mb-3">
                 Questions Per Page
