@@ -23,6 +23,7 @@ const NaturalizationTestPractice: React.FC = () => {
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+	const [name, setName] = useState("unknown");
 
   // Fuzzy matching helper - calculates similarity between two strings
   const calculateSimilarity = (str1: string, str2: string): number => {
@@ -266,6 +267,16 @@ const NaturalizationTestPractice: React.FC = () => {
               <p className="text-gray-500 text-sm mt-2">
                 Select how many questions you want in your quiz
               </p>
+              				<button
+					onClick={() => {
+						fetch("/api/")
+							.then((res) => res.json() as Promise<{ name: string }>)
+							.then((data) => setName(data.name));
+					}}
+					aria-label="get name"
+				>
+					Name from API is: {name}
+				</button>
             </div>
 
             <div className="mb-8">
