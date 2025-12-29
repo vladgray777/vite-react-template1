@@ -23,7 +23,6 @@ const NaturalizationTestPractice: React.FC = () => {
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
-	const [name, setName] = useState("unknown");
 
   // Fuzzy matching helper - calculates similarity between two strings
   const calculateSimilarity = (str1: string, str2: string): number => {
