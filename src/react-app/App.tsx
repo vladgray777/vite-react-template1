@@ -88,28 +88,6 @@ const NaturalizationTestPractice: React.FC = () => {
     }
   };
 
-  //Vlad 1-1-2026: Fetch US Governors
-  const fetchGovernors = async (stateCode: string) => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await fetch(`http://localhost:3001/api/us-governors/?stateCode=${stateCode}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch governors');
-      }
-
-      const data = await response.json();
-      console.log('Governors data:', data);
-    } catch (err) {
-      setError('Failed to load governors. Please try again.');
-      console.error('Error fetching governors:', err);
-    } finally {
-      setLoading(false);
-    }
-  }
- useEffect(() => {
-  fetchGovernors('MA');
-}, []);
 
   const generateQuizQuestions = () => {
     const poolSize = Math.min(parseInt(questionPool) || 100, allQuestions.length);
