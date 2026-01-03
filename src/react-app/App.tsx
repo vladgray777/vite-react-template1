@@ -1,4 +1,3 @@
-import { stat } from 'fs';
 import React, { useState, useEffect } from 'react';
 
 interface Question {
@@ -10,12 +9,6 @@ interface Question {
 
 interface QuizQuestion extends Question {
   displayId: number;
-}
-
-interface Governor {
-  state: string;
-  stateCode: string;
-  governor: string;
 }
 
 const NaturalizationTestPractice: React.FC = () => {
