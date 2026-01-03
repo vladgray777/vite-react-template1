@@ -1,3 +1,4 @@
+import { stat } from 'fs';
 import React, { useState, useEffect } from 'react';
 
 interface Question {
@@ -11,9 +12,15 @@ interface QuizQuestion extends Question {
   displayId: number;
 }
 
+interface Governor {
+  state: string;
+  stateCode: string;
+  governor: string;
+}
+
 const NaturalizationTestPractice: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<'setup' | 'quiz' | 'results'>('setup');
-  const [questionPool, setQuestionPool] = useState<string>('20');
+  const [questionPool, setQuestionPool] = useState<string>('100');
   const [questionsPerPage, setQuestionsPerPage] = useState<string>('5');
   const [currentQuizPage, setCurrentQuizPage] = useState<number>(1);
   const [practiceMode, setPracticeMode] = useState<'multiple-choice' | 'type-answer'>('multiple-choice');
@@ -23,6 +30,7 @@ const NaturalizationTestPractice: React.FC = () => {
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [showHelp, setShowHelp] = useState(false);
 
   // Fuzzy matching helper - calculates similarity between two strings
   const calculateSimilarity = (str1: string, str2: string): number => {
@@ -86,6 +94,29 @@ const NaturalizationTestPractice: React.FC = () => {
       setLoading(false);
     }
   };
+
+  //Vlad 1-1-2026: Fetch US Governors
+  const fetchGovernors = async (stateCode: string) => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await fetch(`http://localhost:3001/api/us-governors/?stateCode=${stateCode}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch governors');
+      }
+
+      const data = await response.json();
+      console.log('Governors data:', data);
+    } catch (err) {
+      setError('Failed to load governors. Please try again.');
+      console.error('Error fetching governors:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+ useEffect(() => {
+  fetchGovernors('MA');
+}, []);
 
   const generateQuizQuestions = () => {
     const poolSize = Math.min(parseInt(questionPool) || 100, allQuestions.length);
@@ -218,10 +249,173 @@ const NaturalizationTestPractice: React.FC = () => {
     return question.correctAnswers.join(', ');
   };
 
+  const calculateScore = () => {
+    let correctCount = 0;
+    quizQuestions.forEach(question => {
+      if (isAnswerCorrect(question)) {
+        correctCount++;
+      }
+    });
+    
+    const totalQuestions = quizQuestions.length;
+    const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+    
+    return {
+      correct: correctCount,
+      total: totalQuestions,
+      percentage
+    };
+  };
+
+  // Help Dialog Component
+  const HelpDialog = () => {
+    if (!showHelp) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">📚 How This App Works</h2>
+                <p className="text-blue-100">N-400 Naturalization Test Practice Guide</p>
+              </div>
+              <button
+                onClick={() => setShowHelp(false)}
+                className="text-white hover:text-gray-200 text-2xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* About the Test */}
+            <section>
+              <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+                🇺🇸 About the N-400 Civics Test
+              </h3>
+              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <ul className="space-y-2 text-gray-700">
+                  <li>• The actual test has <strong>128 possible questions</strong></li>
+                  <li>• During your interview, you'll be asked <strong>20 questions</strong></li>
+                  <li>• You must answer <strong>12 out of 20 correctly (60%)</strong> to pass</li>
+                  <li>• Questions cover American government, history, and civics</li>
+                </ul>
+              </div>
+            </section>
+
+            {/* How to Use This App */}
+            <section>
+              <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+                ⚙️ How to Use This App
+              </h3>
+              <div className="space-y-3">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2">1️⃣ Setup Your Test</h4>
+                  <ul className="text-gray-700 space-y-1 ml-4">
+                    <li>• <strong>Number of Questions:</strong> Choose how many questions (1-128) you want to practice</li>
+                    <li>• <strong>Questions Per Page:</strong> Set how many questions appear on each page</li>
+                    <li>• <strong>Practice Mode:</strong> Choose Multiple Choice or Type Your Answer</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2">2️⃣ Take the Test</h4>
+                  <ul className="text-gray-700 space-y-1 ml-4">
+                    <li>• Questions are randomly selected from the pool</li>
+                    <li>• Navigate between pages using Previous/Next buttons</li>
+                    <li>• Your answers are saved automatically</li>
+                    <li>• Submit when you're done with all questions</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-800 mb-2">3️⃣ Review Results</h4>
+                  <ul className="text-gray-700 space-y-1 ml-4">
+                    <li>• See your score and percentage</li>
+                    <li>• Review correct answers for each question</li>
+                    <li>• Green = correct, Red = incorrect</li>
+                    <li>• Click <strong>Retry</strong> for new questions with same settings</li>
+                    <li>• Click <strong>New Test</strong> to change settings</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* Question Types */}
+            <section>
+              <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+                📝 Question Types
+              </h3>
+              <div className="space-y-3">
+                <div className="border-l-4 border-green-500 bg-green-50 p-3 rounded">
+                  <h4 className="font-semibold text-gray-800 mb-1">✓ Single Answer (Radio Buttons)</h4>
+                  <p className="text-sm text-gray-700">Select one correct answer from the options</p>
+                </div>
+
+                <div className="border-l-4 border-purple-500 bg-purple-50 p-3 rounded">
+                  <h4 className="font-semibold text-gray-800 mb-1">☑️ Multiple Answers (Checkboxes)</h4>
+                  <p className="text-sm text-gray-700">Select all correct answers (shown when there are 2-3 correct options)</p>
+                </div>
+
+                <div className="border-l-4 border-blue-500 bg-blue-50 p-3 rounded">
+                  <h4 className="font-semibold text-gray-800 mb-1">📄 All of the Above</h4>
+                  <p className="text-sm text-gray-700">Appears when all options are correct (4+ correct answers)</p>
+                </div>
+
+                <div className="border-l-4 border-orange-500 bg-orange-50 p-3 rounded">
+                  <h4 className="font-semibold text-gray-800 mb-1">⌨️ Type Your Answer</h4>
+                  <p className="text-sm text-gray-700">Type the answer in your own words. Allows up to 15% spelling errors (85% similarity required)</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Tips */}
+            <section>
+              <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+                💡 Study Tips
+              </h3>
+              <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+                <ul className="space-y-2 text-gray-700">
+                  <li>✓ Start with a small pool (20-30 questions) and increase gradually</li>
+                  <li>✓ Practice both Multiple Choice and Type Your Answer modes</li>
+                  <li>✓ Review incorrect answers carefully to learn the material</li>
+                  <li>✓ Take multiple tests to cover all 128 questions</li>
+                  <li>✓ Aim for 80%+ scores to ensure you're well-prepared</li>
+                  <li>✓ The actual test is oral - practice saying answers out loud!</li>
+                </ul>
+              </div>
+            </section>
+
+            {/* Footer */}
+            <div className="text-center pt-4 border-t">
+              <p className="text-gray-600 text-sm">
+                Good luck with your U.S. Citizenship Interview! 🇺🇸
+              </p>
+            </div>
+          </div>
+
+          {/* Close Button */}
+          <div className="sticky bottom-0 bg-gray-50 p-4 rounded-b-2xl border-t">
+            <button
+              onClick={() => setShowHelp(false)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all"
+            >
+              Got it, thanks!
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Setup Page
   if (currentPage === 'setup') {
     return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-800 mb-3">
@@ -340,9 +534,15 @@ const NaturalizationTestPractice: React.FC = () => {
             </button>
           </div>
 
-          <button className="fixed bottom-8 right-8 w-12 h-12 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all flex items-center justify-center">
+          <button 
+            onClick={() => setShowHelp(true)}
+            className="fixed bottom-8 right-8 w-12 h-12 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all flex items-center justify-center"
+            aria-label="Help"
+          >
             <span className="text-xl">?</span>
           </button>
+          
+          <HelpDialog />
         </div>
       </div>
     );
@@ -350,7 +550,7 @@ const NaturalizationTestPractice: React.FC = () => {
 
   // Quiz Page
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-3">
@@ -394,9 +594,80 @@ const NaturalizationTestPractice: React.FC = () => {
           </div>
 
           {isSubmitted && (
-            <div className="mt-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-              Test submitted! Review the correct answers below each question.
-            </div>
+            <>
+              <div className="mt-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+                Test submitted! Review the correct answers below each question.
+              </div>
+              
+              {/* Score Display */}
+              {(() => {
+                const score = calculateScore();
+                const isPassing = score.percentage >= 60; // 60% is passing for N-400 test
+                
+                return (
+                  <div className={`mt-4 p-6 rounded-lg border-2 ${
+                    isPassing 
+                      ? 'bg-green-50 border-green-400' 
+                      : 'bg-red-50 border-red-400'
+                  }`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-2xl font-bold text-gray-800">Your Score</h3>
+                      <div className={`text-5xl font-bold ${
+                        isPassing ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {score.percentage}%
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="bg-white p-4 rounded-lg shadow-sm">
+                        <div className="text-sm text-gray-600 mb-1">Correct Answers</div>
+                        <div className="text-2xl font-bold text-green-600">
+                          {score.correct} / {score.total}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white p-4 rounded-lg shadow-sm">
+                        <div className="text-sm text-gray-600 mb-1">Wrong Answers</div>
+                        <div className="text-2xl font-bold text-red-600">
+                          {score.total - score.correct} / {score.total}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {isPassing ? (
+                        <>
+                          <span className="text-3xl">🎉</span>
+                          <span className="text-green-700 font-semibold">
+                            Congratulations! You passed! (60% or higher required)
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-3xl">📚</span>
+                          <span className="text-red-700 font-semibold">
+                            Keep practicing! You need 60% or higher to pass.
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="mt-4">
+                      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div 
+                          className={`h-full transition-all duration-500 ${
+                            isPassing ? 'bg-green-600' : 'bg-red-600'
+                          }`}
+                          style={{ width: `${score.percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </>
           )}
         </div>
 
@@ -708,9 +979,15 @@ const NaturalizationTestPractice: React.FC = () => {
           );
         })()}
 
-        <button className="fixed bottom-8 right-8 w-12 h-12 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all flex items-center justify-center">
+        <button 
+          onClick={() => setShowHelp(true)}
+          className="fixed bottom-8 right-8 w-12 h-12 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-700 transition-all flex items-center justify-center"
+          aria-label="Help"
+        >
           <span className="text-xl">?</span>
         </button>
+        
+        <HelpDialog />
       </div>
     </div>
   );
