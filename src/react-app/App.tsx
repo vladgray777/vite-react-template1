@@ -90,7 +90,7 @@ const NaturalizationTestPractice: React.FC = () => {
 
 
   const generateQuizQuestions = () => {
-    const poolSize = Math.min(parseInt(questionPool) || 20, allQuestions.length);
+    const poolSize = Math.min(parseInt(questionPool) || 100, allQuestions.length);
     
     // Shuffle ALL questions first
     const shuffledAll = [...allQuestions].sort(() => Math.random() - 0.5);
